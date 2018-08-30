@@ -12,6 +12,9 @@ using WebSocket4Net;
 
 using System.IO;
 
+// Example Cortex Workflow: login, authenticate/authorize, query headset, create session, subscribe.
+
+// Request IDs
 // Login:           1
 // Logout:          2
 // Authorize:       3
@@ -19,7 +22,6 @@ using System.IO;
 // CreateSession:   5
 // Subscribe:       6
 // QuerySessions:   7
-// From Cortex example: login, authenticate, query headset, create session, subscribe.
 
 namespace CortexTest
 {
@@ -39,7 +41,7 @@ namespace CortexTest
 
         string token;
 
-        public void Init ()
+        public void Init()
         {
             Console.WriteLine("CortexManager start.");
             Console.WriteLine();
@@ -99,12 +101,12 @@ namespace CortexTest
             Thread.Sleep(10000);
         }
 
-        public void WebSocketOpened (object sender, EventArgs e)
+        public void WebSocketOpened(object sender, EventArgs e)
         {
             Console.WriteLine("WebSocket connection opened.");
         }
 
-        public void WebSocketClosed (object sender, EventArgs e)
+        public void WebSocketClosed(object sender, EventArgs e)
         {
             Console.WriteLine("WebSocket connection closed.");
         }
@@ -114,12 +116,12 @@ namespace CortexTest
             Console.WriteLine("Error Occurred.");
         }
 
-        public void WebSocketMessageReceived (object sender, MessageReceivedEventArgs e)
+        public void WebSocketMessageReceived(object sender, MessageReceivedEventArgs e)
         {
             Console.WriteLine("Message received.");
             JObject response = JObject.Parse(e.Message.ToString());
             Console.WriteLine(response.ToString());
-            
+
             // Response from Authorize() request.
             // Getting authentication token.
             if (response.ToString().Contains("jsonrpc") && Int32.Parse(response["id"].ToString()) == 3)
@@ -138,25 +140,10 @@ namespace CortexTest
             if (!response.ToString().Contains("jsonrpc") && response.ToString().Contains("eeg"))
             {
                 TextWriter writer = new StreamWriter(filePath, true);
-                writer.Write(response["eeg"][0].ToString() + ",");
-                writer.Write(response["eeg"][1].ToString() + ",");
-                writer.Write(response["eeg"][2].ToString() + ",");
-                writer.Write(response["eeg"][3].ToString() + ",");
-                writer.Write(response["eeg"][4].ToString() + ",");
-                writer.Write(response["eeg"][5].ToString() + ",");
-                writer.Write(response["eeg"][7].ToString() + ",");
-                writer.Write(response["eeg"][8].ToString() + ",");
-                writer.Write(response["eeg"][9].ToString() + ",");
-                writer.Write(response["eeg"][10].ToString() + ",");
-                writer.Write(response["eeg"][11].ToString() + ",");
-                writer.Write(response["eeg"][12].ToString() + ",");
-                writer.Write(response["eeg"][13].ToString() + ",");
-                writer.Write(response["eeg"][14].ToString() + ",");
-                writer.Write(response["eeg"][15].ToString() + ",");
-                writer.Write(response["eeg"][16].ToString() + ",");
-                writer.Write(response["eeg"][17].ToString() + ",");
-                writer.Write(response["eeg"][18].ToString() + ",");
-                writer.Write(response["eeg"][19].ToString() + ",");
+                for (int i = 0; i < 18; i++)
+                {
+                    writer.Write(response["eeg"][i].ToString() + ",");
+                }
                 writer.WriteLine();
                 writer.Close();
             }
@@ -174,7 +161,7 @@ namespace CortexTest
             Console.WriteLine();
         }
 
-        public void Login ()
+        public void Login()
         {
             Console.WriteLine("Login() called.");
 
@@ -203,7 +190,7 @@ namespace CortexTest
             ws.Send(request.ToString());
         }
 
-        public void Logout ()
+        public void Logout()
         {
             Console.WriteLine("Logout() called.");
 
@@ -227,7 +214,7 @@ namespace CortexTest
         }
 
         // Get authentication token.
-        public void Authorize ()
+        public void Authorize()
         {
             Console.WriteLine("Authorize() called.");
 
@@ -255,7 +242,7 @@ namespace CortexTest
         }
 
         // Query all headsets.
-        public void QueryHeadsets ()
+        public void QueryHeadsets()
         {
             Console.WriteLine("QueryHeadsets() called.");
 
@@ -277,7 +264,7 @@ namespace CortexTest
         }
 
         // Create active session on default headset.
-        public void CreateSession ()
+        public void CreateSession()
         {
             Console.WriteLine("CreateSession() called.");
 
@@ -303,7 +290,7 @@ namespace CortexTest
         }
 
         // Subscribe only EEG.
-        public void Subscribe ()
+        public void Subscribe()
         {
             Console.WriteLine("Subscribe() called.");
 
@@ -331,7 +318,7 @@ namespace CortexTest
         }
 
         // Query all sessions.
-        public void QuerySessions ()
+        public void QuerySessions()
         {
             Console.WriteLine("QuerySessions() called.");
 
