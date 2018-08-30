@@ -13,6 +13,7 @@ using WebSocket4Net;
 using System.IO;
 
 // Example Cortex Workflow: login, authenticate/authorize, query headset, create session, subscribe.
+// Minimal Cortex Workflow: logout, login, authenticate/authorize, create session, subscribe.
 
 // Request IDs
 // Login:           1
@@ -40,6 +41,7 @@ namespace CortexTest
         string filePath;
 
         string token;
+        string headset_id;
 
         public void Init()
         {
@@ -53,7 +55,9 @@ namespace CortexTest
             client_id = "sw37ALQ0sEXese8dA723pqracKIy49OSsYpCWezQ";
             client_secret = "Yt3BC6hXbJTwDneJOEjaXu2Q8rBEtjZsKG6Ria2E2rkTUUq795Uk0vroszf54J6OFoVHWfio8q8wJEUfyhaUoujCDDkrUHBjvW7xpEg5krg7wXofxu4Nxm5ouQGXdo6Y";
 
+            // Set up file.
             fileName = "cortex.csv";
+            // fileLocation = @"C:\Users\Chester\Desktop\";
             fileLocation = @"C:\Users\nrobinson\Desktop\Chester\";
             filePath = fileLocation + fileName;
 
@@ -94,7 +98,7 @@ namespace CortexTest
             Thread.Sleep(5000);
             Subscribe();
 
-            Thread.Sleep(5000);
+            Thread.Sleep(1000);
             Console.WriteLine("Calling WebSocket.Close().");
             ws.Close();
             Console.WriteLine("WebSocket.Close() called.");
@@ -113,7 +117,7 @@ namespace CortexTest
 
         public void WebSocketError(object sender, SuperSocket.ClientEngine.ErrorEventArgs e)
         {
-            Console.WriteLine("Error Occurred.");
+            Console.WriteLine("Error occurred.");
         }
 
         public void WebSocketMessageReceived(object sender, MessageReceivedEventArgs e)
@@ -124,20 +128,31 @@ namespace CortexTest
 
             // Response from Authorize() request.
             // Getting authentication token.
-            if (response.ToString().Contains("jsonrpc") && Int32.Parse(response["id"].ToString()) == 3)
+            if (response.ToString().Contains("result") && Int32.Parse(response["id"].ToString()) == 3)
             {
                 this.token = response["result"]["_auth"].ToString();
             }
 
             // Response from QueryHeadsets() request.
             // Getting headset id.
-            //if (Int32.Parse(response["id"].ToString()) == 4)
-            //{
-            //    this.headset_id = response["result"][0]["id"].ToString();
-            //}
+            if (response.ToString().Contains("result") && Int32.Parse(response["id"].ToString()) == 4)
+            {
+                this.headset_id = response["result"][0]["id"].ToString();
+            }
+
+            if (response.ToString().Contains("result") && Int32.Parse(response["id"].ToString()) == 6)
+            {
+                TextWriter writer = new StreamWriter(filePath, false);
+                for (int i = 0; i < 18; i++)
+                {
+                    writer.Write(response["result"][0]["eeg"]["cols"][i].ToString() + ",");
+                }
+                writer.WriteLine();
+                writer.Close();
+            }
 
             // Handling streaming EEG data.
-            if (!response.ToString().Contains("jsonrpc") && response.ToString().Contains("eeg"))
+            if (!response.ToString().Contains("result") && response.ToString().Contains("eeg"))
             {
                 TextWriter writer = new StreamWriter(filePath, true);
                 for (int i = 0; i < 18; i++)
@@ -149,7 +164,7 @@ namespace CortexTest
             }
 
             // Response from QuerySessions() request.
-            if (response.ToString().Contains("jsonrpc") && Int32.Parse(response["id"].ToString()) == 7)
+            if (response.ToString().Contains("result") && Int32.Parse(response["id"].ToString()) == 7)
             {
                 string file = @"C:\Users\nrobinson\Desktop\Chester\QuerySessions.txt";
 
